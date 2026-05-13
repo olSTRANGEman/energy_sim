@@ -20,7 +20,7 @@ class Generator:
 
 
 
-def gens_and_cons(generators: list, consumers: list) -> list:
+def gens_and_cons(generators: list, consumers: list) -> tuple:
     #Greedy using energy
     generators= sorted(generators, key = lambda x: x.get_consume())    
     gen_shedule = {}
@@ -46,6 +46,8 @@ def gens_and_cons(generators: list, consumers: list) -> list:
             else:
                 consump_in += consumers[i][1][h]
                 people_id.add(consumers[i][0])
+                continue
+            break
         gen_shedule[h] = gen_id
         con_scedule[h] = people_id
         online = sorted([x for x in generators if x.get_id() in gen_id], key = lambda x: x.get_output()[h], reverse=True)
