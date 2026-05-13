@@ -1,9 +1,9 @@
 import argparse
 import csv
 
-class generator:
+class Generator:
 
-    def __init__(self, id: int, type: str, consume: float, output_per_hour: list):
+    def __init__(self, id: str, type: str, consume: float, output_per_hour: list):
         self.id = id
         self.type = type 
         self.consume = consume 
@@ -48,13 +48,14 @@ def gens_and_cons(generators: list, consumers: list) -> list:
                 people_id.add(consumers[i][0])
         gen_shedule[h] = gen_id
         con_scedule[h] = people_id
-        online = sorted([x for x in generators if x.get_id() in gen_id], key = lambda x: x.get_output(), reverse=True)
+        online = sorted([x for x in generators if x.get_id() in gen_id], key = lambda x: x.get_output()[h], reverse=True)
 
         #now we OFF generators if they not needed
         #99 + 2 + 1 but consumes 100 -> off second
         for gen in online:
             if (gen_out - gen.get_output()[h]) >= consump_in:
                 gen_id.remove(gen.get_id())
+                gen_out -= gen.get_output()[h]
             
     
     return gen_shedule, con_scedule
@@ -73,7 +74,7 @@ def main():
     with open(args.generators_data, mode='r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            tmp = generator(row['gen_id'], row['type'], float(row['cost_per_kwh']), [float(row[f"h{i}"]) for i in range(24)])
+            tmp = Generator(row['gen_id'], row['type'], float(row['cost_per_kwh']), [float(row[f"h{i}"]) for i in range(24)])
             generators_list.append(tmp)
     
     with open(args.test_data, mode='r') as f:
@@ -86,7 +87,7 @@ def main():
 
     gen_schedule, con_scedule = gens_and_cons(generators_list, consumers_list)
 
-    print(f'{"h":<4} | {"working generators id":^25} | {'cost':^6} | {"consumers_with_no_elec":^20} ' )
+    print(f'{"h":<4} | {"working generators id":^25} | {"cost":^6} | {"consumers_with_no_elec":^20} ' )
     for h in range(24):
         gen_cost = sum(x.get_consume() for x in generators_list if x.get_id() in gen_schedule[h])
         consumers_with_no_elec = sorted([x[0] for x in consumers_list if x[0] not in con_scedule[h]], key= lambda x: int(x))
